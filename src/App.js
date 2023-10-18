@@ -1,45 +1,54 @@
 import React from 'react';
+import axios from 'axios';
+import Movie from './Movie';
 
 class App extends React.Component {
-  constructor(props) {
-    super(props);
-    console.log('hello');
-  }
   state = {
-    count: 0,
+    isLoading: true,
+    movies: [],
   };
 
-  add = () => {
-    this.setState(current => ({
-      count: current.count + 1,
-    }));
-  };
-
-  minus = () => {
-    this.setState(current => ({
-      count: current.count - 1,
-    }));
-  };
+  getMovies = async () => {
+    try {
+      const {
+        data: {
+          boxOfficeResult: {
+            dailyBoxOfficeList
+          },
+        },
+      } = await axios.get('http://kobis.or.kr/kobisopenapi/webservice/rest/boxoffice/searchDailyBoxOfficeList.json?key=f5eef3421c602c6cb7ea224104795888&targetDt=20120101');
+      
+      this.setState({ movies: dailyBoxOfficeList, isLoading: false }); // movies를 setState를 통해 정의
+  
+    } catch (error) {
+      console.error('데이터를 가져오는 중 오류 발생: ', error);
+    }
+  }
+  
 
   componentDidMount() {
-    console.log("component rendered");
+    //영화 데이터 로딩!
+    this.getMovies();
   }
-
-  componentDidUpdate() {
-    console.log('I just updated');
-  }
-
-  componentWillUnmount() {
-    console.log('Goodbye, cruel world');
-  }
-
+ 
   render() {
-    console.log('render');
+    const { isLoading, movies } = this.state;
     return (
       <div>
-        <h1>The number is: {this.state.count}</h1>
-        <button onClick={this.add}>Add</button>
-        <button onClick={this.minus}>Minus</button>
+        {isLoading ? 'Loading...' : movies.map((movie) => {
+          console.log(movie);
+          return( 
+          <Movie
+            rank={movie.rank}
+            openDt={movie.openDt}
+            movieNm={movie.movieNm}
+            audiCnt={movie.audiCnt}
+            audiInten={movie.audiInten}
+            audiChange={movie.audiChange}
+            audiAcc={movie.audiAcc}
+          />
+          );
+        })}
       </div>
     );
   }
